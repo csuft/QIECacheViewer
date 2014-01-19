@@ -112,9 +112,9 @@ For ```DEVELOPER```:
 Screen Shot
 -----------
 Method One:  
-![MethodOne.jpg](E:/codes/qt/IECacheViewer/captures/Schirmfoto_2014-01-19_104707.jpg "")
+![MethodOne.jpg](E:/codes/qt/IECacheViewer/captures/Schirmfoto_2014-01-19_104707.png "Parsing using Windows API")
 Method Two:
-![MethodTwo.jpg](E:/codes/qt/IECacheViewer/captures/Schirmfoto_2014-01-19_010411.jpg "Parse index.dat file")
+![MethodTwo.jpg](E:/codes/qt/IECacheViewer/captures/Schirmfoto_2014-01-19_010411.png "Parse index.dat file")
 To Do
 -----
 * ```Windows 7``` support
