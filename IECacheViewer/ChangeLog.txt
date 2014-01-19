@@ -1,0 +1,4 @@
+2014-1-18 Zhongke Zhang <zhangzhongke007@163.com>
+	* Implement the UI framework
+	* Add two methods of parsing cache entries
+	* Add Model/View architecture support 
