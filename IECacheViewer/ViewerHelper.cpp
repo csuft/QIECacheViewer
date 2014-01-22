@@ -221,7 +221,7 @@ void IndexParser::initializeEntriesVec()
 {
 	const int PATH_LEN = 256;
 	const char* prefix = "C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content.IE5\\";
-	char path_buf[PATH_LEN] = {L'\0'};
+	char path_buf[PATH_LEN] = {'\0'};
 	
 	// retrieve the index.dat header
 	LPMEMMAP_HEADER_SMALL lpsmallHead = (LPMEMMAP_HEADER_SMALL)m_startAddr;
@@ -242,7 +242,7 @@ void IndexParser::initializeEntriesVec()
 		subdirBeginAddr += 8; // skip the next subdirectory entry.
 		subdirCount++;
 	}
-
+	int ordNum;
 	const int SIGNATURE_LEN = 5;
 	const int NAME_LEN = 9;
 	char signature[SIGNATURE_LEN] = {'\0'};
@@ -257,50 +257,46 @@ void IndexParser::initializeEntriesVec()
 	LPHASH_FILEMAP_ENTRY lphashHeader = (LPHASH_FILEMAP_ENTRY)(m_startAddr + lpsmallHead->dwHashTableOffset);
 	while (lphashHeader)
 	{
+		ordNum++;
 		memset(path_buf, 0, PATH_LEN);
 		memcpy(&hashEntry, lphashHeader, sizeof(HASH_FILEMAP_ENTRY));
 		// iterate through all hash items
-		lphashItem = (LPHASH_ITEM)(lphashHeader + 16);
+		lphashItem = (LPHASH_ITEM)(lphashHeader + 1);
 		memcpy(&hashItem, lphashItem, sizeof(HASH_ITEM));
 		// Terminated in 3 conditions: 0x0, 0x3, 0xDEADBEEF
-		while (hashItem.dwOffset != 0 && hashItem.dwOffset != 0xDEADBEEF && hashItem.dwOffset != 3)
+		while (ordNum <= (hashEntry.nBlocks*0x80-16)/8 && hashItem.dwOffset != 0xDEADBEEF)
 		{
-			lpie5Record = (LPIE5_URL_FILEMAP_ENTRY)(m_startAddr + hashItem.dwOffset);
-			memcpy(&ie5Record, lpie5Record, sizeof(IE5_URL_FILEMAP_ENTRY));
-			memcpy(signature, &ie5Record, 4);
-			// We just ignore all entries except that with type of URL
-			if (!strcmp(signature,"URL "))
+			// skip the holes in hash sections
+			if (hashItem.dwHash != 0x0 && hashItem.dwHash != 0x3)
 			{
-				// fulfill all fields of the cache entry
-				record.m_expiration = transformTimeFormat(ie5Record.dostExpireTime);
-				record.m_lastAccess = transformTimeFormat(ie5Record.LastAccessedTime);
-				record.m_lastModified = transformTimeFormat(ie5Record.LastModifiedTime);
-				record.m_hits = ie5Record.NumAccessed;
-				record.m_entrySize = ie5Record.dwFileSize;
-				record.m_subFolder = string(subdirNames[ie5Record.DirIndex]);
-				strcat(path_buf, prefix);
-				strncat(path_buf, subdirNames[ie5Record.DirIndex], 8);
-				record.m_localPath = string(path_buf);
-				record.m_fileName = string((char*)lpie5Record + lpie5Record->InternalFileNameOffset);
-				record.m_urlStr = string((char*)lpie5Record + lpie5Record->UrlNameOffset);
-				record.m_headerInfo = string((char*)lpie5Record + lpie5Record->HeaderInfoOffset);
-				m_recordsVec.push_back(record);
-				memset(path_buf, 0, PATH_LEN);
+				lpie5Record = (LPIE5_URL_FILEMAP_ENTRY)(m_startAddr + hashItem.dwOffset);
+				memcpy(&ie5Record, lpie5Record, sizeof(IE5_URL_FILEMAP_ENTRY));
+				memcpy(signature, &ie5Record, 4);
+				// We just ignore all entries except that with type of URL
+				if (!strcmp(signature,"URL "))
+				{
+					// fulfill all fields of the cache entry
+					record.m_expiration = transformTimeFormat(ie5Record.dostExpireTime);
+					record.m_lastAccess = transformTimeFormat(ie5Record.LastAccessedTime);
+					record.m_lastModified = transformTimeFormat(ie5Record.LastModifiedTime);
+					record.m_hits = ie5Record.NumAccessed;
+					record.m_entrySize = ie5Record.dwFileSize;
+					record.m_subFolder = string(subdirNames[ie5Record.DirIndex]);
+					strcat(path_buf, prefix);
+					strncat(path_buf, subdirNames[ie5Record.DirIndex], 8);
+					record.m_localPath = string(path_buf);
+					record.m_fileName = string((char*)lpie5Record + lpie5Record->InternalFileNameOffset);
+					record.m_urlStr = string((char*)lpie5Record + lpie5Record->UrlNameOffset);
+					record.m_headerInfo = string((char*)lpie5Record + lpie5Record->HeaderInfoOffset);
+					m_recordsVec.push_back(record);
+					memset(path_buf, 0, PATH_LEN);
+				}
 			}
-
 			// skip to the next hash item.
-			lphashItem += 8;  
+			lphashItem += 1;  
 			memcpy(&hashItem, lphashItem, sizeof(HASH_ITEM));
 		}
-		if (hashEntry.dwNext)
-		{
-			lphashHeader = (LPHASH_FILEMAP_ENTRY)(m_startAddr + hashEntry.dwNext);
-		}
-		else
-		{
-			// We have reached the last hash header
-			lphashHeader = (LPHASH_FILEMAP_ENTRY)hashEntry.dwNext;
-		}
+		lphashHeader = hashEntry.dwNext?(LPHASH_FILEMAP_ENTRY)(m_startAddr + hashEntry.dwNext):NULL;
 	}
 	 
 }

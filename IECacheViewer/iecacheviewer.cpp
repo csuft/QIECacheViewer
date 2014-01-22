@@ -38,6 +38,8 @@ IECacheViewer::IECacheViewer(QWidget *parent)
 	m_tableView = new QTableView;
 	m_tableView->setSortingEnabled(true);
 	m_tableView->sortByColumn(0, Qt::AscendingOrder);
+	m_tableView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+	m_tableView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 	// hide the vertical header since we don't need it at all.
 	m_tableView->verticalHeader()->hide();
 	m_tableView->setWordWrap(false);
@@ -121,14 +123,12 @@ IECacheViewer::~IECacheViewer()
 
 void IECacheViewer::onAboutTriggered()
 {
-
-
+	QMessageBox::about(this, QStringLiteral("About"), QStringLiteral("The program is licensed under LGPL. \n Author: <font color='blue'>zhangzhongke</font>"));
 }
 
 void IECacheViewer::onRefreshClicked()
 {
-
-
+	m_wayOne->isChecked()?onMethodOneChoosed():onMethodTwoChoosed();
 }	
 
 void IECacheViewer::onExportClicked()

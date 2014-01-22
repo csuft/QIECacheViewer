@@ -19,6 +19,7 @@
 #include <QMenuBar>
 #include <QAction>
 #include <QIcon>
+#include <QMessageBox>
 #include <QHeaderView>
 #include <QAbstractItemView>
 #include <QAbstractItemModel>
