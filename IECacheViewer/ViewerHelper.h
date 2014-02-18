@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include <WinInet.h>
 #include <strsafe.h>
+#include <QSysInfo>
 
 #pragma comment(lib, "strsafe.lib")
 #pragma comment(lib, "Wininet.lib")
@@ -144,6 +145,7 @@ private:
 	IndexParser(const IndexParser& obj);
 	void initializeEntriesVec();
 	const string transformTimeFormat(LONGLONG dtime);
+	const string getIndexPath(const char* appendice);
 private:
 	vector<CacheEntry>	m_recordsVec;
 	HANDLE				m_hFile;

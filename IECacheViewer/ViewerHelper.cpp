@@ -179,9 +179,9 @@ void ViewerHelper::transformTimeFormat(pCacheEntry entry, const LPINTERNET_CACHE
 
 IndexParser::IndexParser()
 {
-	const char* fileName = "C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content.IE5\\index.dat";
+	const string fileName = getIndexPath("index.dat");
 	// create a kernel file object
-	m_hFile = CreateFileA(fileName, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_READONLY, NULL);
+	m_hFile = CreateFileA(fileName.c_str(), GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_READONLY, NULL);
 	if (m_hFile == INVALID_HANDLE_VALUE)
 	{
 		MessageBoxA(NULL, "Error", "Can't open the index.dat file.", MB_OKCANCEL);
@@ -212,7 +212,7 @@ IndexParser::IndexParser()
 IndexParser::~IndexParser()
 {
 	// To free all resources we get when we do file mapping
-	CloseHandle(m_startAddr);
+	UnmapViewOfFile(m_startAddr);
 	CloseHandle(m_hMapping);
 	CloseHandle(m_hFile);
 }
@@ -220,7 +220,7 @@ IndexParser::~IndexParser()
 void IndexParser::initializeEntriesVec()
 {
 	const int PATH_LEN = 256;
-	const char* prefix = "C:\\Documents and Settings\\Administrator\\Local Settings\\Temporary Internet Files\\Content.IE5\\";
+	const char* prefix = getIndexPath("").c_str();
 	char path_buf[PATH_LEN] = {'\0'};
 	
 	// retrieve the index.dat header
@@ -242,7 +242,7 @@ void IndexParser::initializeEntriesVec()
 		subdirBeginAddr += 8; // skip the next subdirectory entry.
 		subdirCount++;
 	}
-	int ordNum;
+	int ordNum = 0;
 	const int SIGNATURE_LEN = 5;
 	const int NAME_LEN = 9;
 	char signature[SIGNATURE_LEN] = {'\0'};
@@ -257,7 +257,7 @@ void IndexParser::initializeEntriesVec()
 	LPHASH_FILEMAP_ENTRY lphashHeader = (LPHASH_FILEMAP_ENTRY)(m_startAddr + lpsmallHead->dwHashTableOffset);
 	while (lphashHeader)
 	{
-		ordNum++;
+		ordNum = 0;
 		memset(path_buf, 0, PATH_LEN);
 		memcpy(&hashEntry, lphashHeader, sizeof(HASH_FILEMAP_ENTRY));
 		// iterate through all hash items
@@ -290,6 +290,7 @@ void IndexParser::initializeEntriesVec()
 					record.m_headerInfo = string((char*)lpie5Record + lpie5Record->HeaderInfoOffset);
 					m_recordsVec.push_back(record);
 					memset(path_buf, 0, PATH_LEN);
+					ordNum++;
 				}
 			}
 			// skip to the next hash item.
@@ -322,4 +323,29 @@ const string IndexParser::transformTimeFormat(LONGLONG dtime)
 	}
 
 	return string(chDateTime);
+}
+
+const string IndexParser::getIndexPath(const char* appendice)
+{
+	const int BUFFERSIZE = 1024;
+	DWORD len = BUFFERSIZE;
+	char windir[BUFFERSIZE] = {'\0'};
+	char paths[BUFFERSIZE] = {'\0'};
+	char uname[BUFFERSIZE] = {'\0'};
+	GetWindowsDirectoryA(windir, BUFFERSIZE);
+	GetUserNameA(uname, &len);
+	QSysInfo sysinfo;
+	if (QSysInfo::WV_WINDOWS7 == sysinfo.windowsVersion())  // For Windows 7.
+	{
+		_snprintf(paths, BUFFERSIZE, "%c:\\Users\\%s\\AppData\\Local\\Microsoft\\Windows\\Temporary Internet Files\\Content.IE5\\%s", windir[0], uname, appendice);
+	}
+	else if (QSysInfo::WV_XP == sysinfo.windowsVersion())  // For Windows XP.
+	{
+		_snprintf(paths, BUFFERSIZE, "%c:\\Documents and Settings\\%s\\Local Settings\\Temporary Internet Files\\Content.IE5\\%s", windir[0], uname, appendice);
+	}
+	else // For other Windows versions.
+	{
+		_snprintf(paths, BUFFERSIZE, "Unknown");
+	}
+	return paths;
 }

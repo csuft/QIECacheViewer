@@ -123,7 +123,7 @@ IECacheViewer::~IECacheViewer()
 
 void IECacheViewer::onAboutTriggered()
 {
-	QMessageBox::about(this, QStringLiteral("About"), QStringLiteral("The program is licensed under LGPL. \n Author: <font color='blue'>zhangzhongke</font>"));
+	QMessageBox::about(this, QStringLiteral("About"), QStringLiteral("The program is licensed under LGPL. \n Author: zhangzhongke"));
 }
 
 void IECacheViewer::onRefreshClicked()
