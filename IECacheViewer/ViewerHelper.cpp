@@ -267,7 +267,7 @@ void IndexParser::initializeEntriesVec()
 		while (ordNum <= (hashEntry.nBlocks*0x80-16)/8 && hashItem.dwOffset != 0xDEADBEEF)
 		{
 			// skip the holes in hash sections
-			if (hashItem.dwHash != 0x0 && hashItem.dwHash != 0x3)
+			if (hashItem.dwHash != 0x0 && hashItem.dwHash != 0x3 && hashItem.dwHash != 0x1)
 			{
 				lpie5Record = (LPIE5_URL_FILEMAP_ENTRY)(m_startAddr + hashItem.dwOffset);
 				memcpy(&ie5Record, lpie5Record, sizeof(IE5_URL_FILEMAP_ENTRY));
