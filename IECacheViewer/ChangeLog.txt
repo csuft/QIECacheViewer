@@ -1,7 +1,0 @@
-2014-1-18 Zhongke Zhang <zhangzhongke007@163.com>
-	* Implement the UI framework
-	* Add two methods of parsing cache entries
-	* Add Model/View architecture support 
-2014-2-19 Zhongke Zhang <zhangzhongke007@163.com>
-	* Bug fix for initializeEntriesVec()
-	* Add Windows 7 support
